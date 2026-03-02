@@ -16,10 +16,11 @@ class TextDelta {
     this.clipboardHint = false,
   });
 
-  // TODO: Expand this model when protocol mapping is implemented.
   final DeltaOp op;
   final int position;
   final int deleteCount;
   final String text;
   final bool clipboardHint;
+
+  static const TextDelta noChange = TextDelta(op: DeltaOp.noChange);
 }
