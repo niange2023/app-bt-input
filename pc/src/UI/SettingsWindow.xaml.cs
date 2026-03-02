@@ -22,6 +22,7 @@ public partial class SettingsWindow : Window
         HotkeyTextBox.Text = FormatHotkey(_hotkeyModifiers, _hotkeyVirtualKey);
         AutoStartCheckBox.IsChecked = settings.AutoStartEnabled;
         RememberDeviceCheckBox.IsChecked = settings.RememberLastDevice;
+        DebugModeCheckBox.IsChecked = settings.DebugModeEnabled;
     }
 
     public AppSettings? ResultSettings { get; private set; }
@@ -65,7 +66,8 @@ public partial class SettingsWindow : Window
             AutoStartEnabled = AutoStartCheckBox.IsChecked == true,
             RememberLastDevice = RememberDeviceCheckBox.IsChecked == true,
             LastDeviceAddress = _baseSettings.LastDeviceAddress,
-            LastDeviceName = _baseSettings.LastDeviceName
+            LastDeviceName = _baseSettings.LastDeviceName,
+            DebugModeEnabled = DebugModeCheckBox.IsChecked == true
         };
 
         DialogResult = true;

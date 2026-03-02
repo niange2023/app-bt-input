@@ -7,6 +7,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../core/protocol.dart';
 import '../models/text_delta.dart';
+import 'stability_monitor.dart';
 import '../utils/constants.dart';
 import '../utils/logger.dart';
 
@@ -43,6 +44,7 @@ class BleService {
 
   Future<void> initializeAsync() async {
     Logger.debug('BleService.initializeAsync');
+    StabilityMonitor.instance.start();
 
     await _prepareIosBleEnvironmentAsync();
 
@@ -92,9 +94,11 @@ class BleService {
     try {
       final payload = _protocol.encode(delta, seq);
       Logger.debug('sendDelta seq=$seq payload=$payload');
+      StabilityMonitor.instance.recordCharsSent(delta.text.length);
       await _notifyTextPayloadAsync(payload);
     } catch (error) {
       Logger.debug('sendDelta failed: $error');
+      StabilityMonitor.instance.recordBleError('sendDelta failed');
       rethrow;
     }
   }
@@ -110,6 +114,7 @@ class BleService {
       }
     } catch (error) {
       Logger.debug('sendHeartbeat failed: $error');
+      StabilityMonitor.instance.recordBleError('sendHeartbeat failed');
     }
   }
 
@@ -120,6 +125,7 @@ class BleService {
       await _notifyTextPayloadAsync(payload);
     } catch (error) {
       Logger.debug('sendSpecialKey failed: $error');
+      StabilityMonitor.instance.recordBleError('sendSpecialKey failed');
       rethrow;
     }
   }
@@ -237,8 +243,10 @@ class BleService {
     for (final chunk in chunks) {
       try {
         await textCharacteristic.write(chunk, withoutResponse: true);
+        StabilityMonitor.instance.recordBlePacket(chunk.length);
       } catch (error) {
         Logger.debug('BLE write failed during chunk send: $error');
+        StabilityMonitor.instance.recordBleError('chunk write failed');
         rethrow;
       }
     }

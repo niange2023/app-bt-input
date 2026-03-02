@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/debug_settings.dart';
 import '../utils/i18n.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -76,6 +77,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     divisions: 8,
                     value: _autoClearTimeout,
                     onChanged: (value) => setState(() => _autoClearTimeout = value),
+                  ),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: DebugSettings.instance.debugModeEnabled,
+                    builder: (context, enabled, _) {
+                      return SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(tr(context, zh: 'Debug 模式', en: 'Debug mode')),
+                        subtitle: Text(
+                          tr(context, zh: '显示实时稳定性统计叠层', en: 'Show realtime stability overlay'),
+                        ),
+                        value: enabled,
+                        onChanged: (value) => DebugSettings.instance.debugModeEnabled.value = value,
+                      );
+                    },
                   ),
                 ],
               ),

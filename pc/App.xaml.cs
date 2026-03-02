@@ -18,6 +18,8 @@ public partial class App : System.Windows.Application
     private FloatingBar? _floatingBar;
     private readonly Queue<TextDeltaMessage> _bufferedDeltas = new();
     private AppSettingsStore? _settingsStore;
+    private DebugFileLogger? _debugLogger;
+    private PcStabilityMonitor? _pcStabilityMonitor;
     private AppSettings _settings = AppSettings.Default;
     private FirstRunWindow? _firstRunWindow;
     private bool _isActivated;
@@ -30,6 +32,9 @@ public partial class App : System.Windows.Application
 
         _settingsStore = new AppSettingsStore();
         _settings = _settingsStore.Load();
+        _debugLogger = new DebugFileLogger(_settings.DebugModeEnabled);
+        _pcStabilityMonitor = new PcStabilityMonitor(_debugLogger);
+        _pcStabilityMonitor.Start();
 
         _trayManager = new TrayManager();
         _trayManager.ExitRequested += (_, _) => Shutdown();
@@ -83,6 +88,8 @@ public partial class App : System.Windows.Application
 
     private async void OnConnectionChanged(bool connected)
     {
+        _debugLogger?.Log($"Connection changed: connected={connected}");
+
         if (connected && !_settings.FirstRunCompleted && _settingsStore is not null)
         {
             _settings.FirstRunCompleted = true;
@@ -130,6 +137,7 @@ public partial class App : System.Windows.Application
         }
 
         var message = _protocolDecoder.Decode(bytes);
+        _pcStabilityMonitor?.RecordReceivedMessage(bytes.Length, message?.GetType().Name ?? "Unknown");
         if (message is TextFullSyncMessage fullSync)
         {
             if (_awaitingFullSync)
@@ -183,6 +191,7 @@ public partial class App : System.Windows.Application
         if (_protocolDecoder.SequenceGapDetected)
         {
             _awaitingFullSync = true;
+            _pcStabilityMonitor?.RecordSyncRequestSent();
             await _bleManager.SendControlAsync(Encoding.UTF8.GetBytes("{\"t\":131}"));
         }
     }
@@ -234,6 +243,11 @@ public partial class App : System.Windows.Application
 
         _settings = updatedSettings;
         _settingsStore.Save(_settings);
+        if (_debugLogger is not null)
+        {
+            _debugLogger.IsEnabled = _settings.DebugModeEnabled;
+            _debugLogger.Log("Debug mode setting changed.");
+        }
 
         _hotkeyManager.Unregister();
         _hotkeyManager.Register(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
@@ -244,6 +258,7 @@ public partial class App : System.Windows.Application
     {
         _hotkeyManager?.Dispose();
         _trayManager?.Dispose();
+        _pcStabilityMonitor?.Dispose();
         if (_bleManager is not null)
         {
             _ = _bleManager.DisposeAsync();

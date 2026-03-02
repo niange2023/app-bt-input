@@ -12,6 +12,7 @@ public sealed class AppSettings
     public bool RememberLastDevice { get; set; }
     public ulong? LastDeviceAddress { get; set; }
     public string? LastDeviceName { get; set; }
+    public bool DebugModeEnabled { get; set; }
 
     public static AppSettings Default => new();
 }

@@ -6,6 +6,8 @@ import '../core/protocol.dart';
 import '../core/throttle_sender.dart';
 import '../models/connection_state.dart';
 import '../services/ble_service.dart';
+import '../services/debug_settings.dart';
+import '../services/stability_monitor.dart';
 import '../utils/constants.dart';
 import '../utils/i18n.dart';
 import '../utils/logger.dart';
@@ -132,6 +134,7 @@ class _InputPageState extends State<InputPage> {
     }
 
     _reconnecting = true;
+    StabilityMonitor.instance.recordReconnect();
     for (int attempt = 1; attempt <= 5; attempt++) {
       if (!mounted) {
         return;
@@ -164,6 +167,7 @@ class _InputPageState extends State<InputPage> {
         );
         return;
       } catch (_) {
+        StabilityMonitor.instance.recordBleError('reconnect attempt failed');
         // Continue trying until max attempts reached.
       }
     }
@@ -299,11 +303,13 @@ class _InputPageState extends State<InputPage> {
           ],
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             if (_inputPaused)
               Container(
                 width: double.infinity,
@@ -363,9 +369,55 @@ class _InputPageState extends State<InputPage> {
               ),
             ),
             const SizedBox(height: 14),
-            _InputWave(active: !_inputPaused && !_reconnecting && _connectionState == ConnectionStateModel.connected, tick: _waveTick),
-          ],
-        ),
+                _InputWave(active: !_inputPaused && !_reconnecting && _connectionState == ConnectionStateModel.connected, tick: _waveTick),
+              ],
+            ),
+          ),
+          Positioned(
+            right: 10,
+            top: 10,
+            child: ValueListenableBuilder<bool>(
+              valueListenable: DebugSettings.instance.debugModeEnabled,
+              builder: (context, enabled, _) {
+                if (!enabled) {
+                  return const SizedBox.shrink();
+                }
+
+                return ValueListenableBuilder<StabilitySnapshot>(
+                  valueListenable: StabilityMonitor.instance.snapshot,
+                  builder: (context, snapshot, _) {
+                    final memoryMb = (snapshot.memoryUsageBytes / (1024 * 1024)).toStringAsFixed(1);
+                    return Container(
+                      width: 220,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface.withOpacity(0.92),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                      ),
+                      child: DefaultTextStyle(
+                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(tr(context, zh: '调试统计', en: 'Debug stats'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 6),
+                            Text(tr(context, zh: '会话时长: ${snapshot.sessionDuration.inMinutes}m ${snapshot.sessionDuration.inSeconds % 60}s', en: 'Session: ${snapshot.sessionDuration.inMinutes}m ${snapshot.sessionDuration.inSeconds % 60}s')),
+                            Text(tr(context, zh: '发送字符: ${snapshot.totalCharsSent}', en: 'Chars sent: ${snapshot.totalCharsSent}')),
+                            Text(tr(context, zh: 'BLE 包数: ${snapshot.blePacketsSent}', en: 'BLE packets: ${snapshot.blePacketsSent}')),
+                            Text(tr(context, zh: 'BLE 字节: ${snapshot.totalBleBytesSent}', en: 'BLE bytes: ${snapshot.totalBleBytesSent}')),
+                            Text(tr(context, zh: '内存: ${memoryMb} MB', en: 'Memory: ${memoryMb} MB')),
+                            Text(tr(context, zh: '重连次数: ${snapshot.reconnectionCount}', en: 'Reconnects: ${snapshot.reconnectionCount}')),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
