@@ -55,5 +55,14 @@ void main() {
       expect(result['s'], 50);
       expect(result['total_chars'], 500);
     });
+
+    test('encode special key JSON', () {
+      final result =
+          jsonDecode(protocol.encodeSpecialKey(51, 'Ctrl+V')) as Map<String, dynamic>;
+
+      expect(result['t'], Constants.msgSpecialKey);
+      expect(result['s'], 51);
+      expect(result['k'], 'Ctrl+V');
+    });
   });
 }

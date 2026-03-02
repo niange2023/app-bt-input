@@ -78,4 +78,17 @@ public class ProtocolDecoderTests
         var typed = Assert.IsType<SegmentCompleteMessage>(message);
         Assert.Equal(500, typed.TotalChars);
     }
+
+    [Fact]
+    public void Decode_SpecialKey_ReturnsMessage()
+    {
+        var decoder = new ProtocolDecoder();
+        var bytes = Encoding.UTF8.GetBytes("{\"t\":7,\"s\":11,\"k\":\"Ctrl+V\"}");
+
+        var message = decoder.Decode(bytes);
+
+        var typed = Assert.IsType<SpecialKeyMessage>(message);
+        Assert.Equal(11, typed.Seq);
+        Assert.Equal("Ctrl+V", typed.Key);
+    }
 }

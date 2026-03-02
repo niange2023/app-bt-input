@@ -17,6 +17,22 @@ class InputPage extends StatefulWidget {
 }
 
 class _InputPageState extends State<InputPage> {
+  static const List<({String label, String keyName})> _specialKeys = [
+    (label: 'Tab', keyName: 'Tab'),
+    (label: 'Enter', keyName: 'Enter'),
+    (label: 'Esc', keyName: 'Esc'),
+    (label: '←', keyName: 'Left'),
+    (label: '→', keyName: 'Right'),
+    (label: '↑', keyName: 'Up'),
+    (label: '↓', keyName: 'Down'),
+    (label: 'Home', keyName: 'Home'),
+    (label: 'End', keyName: 'End'),
+    (label: 'Ctrl+A', keyName: 'Ctrl+A'),
+    (label: 'Ctrl+Z', keyName: 'Ctrl+Z'),
+    (label: 'Ctrl+C', keyName: 'Ctrl+C'),
+    (label: 'Ctrl+V', keyName: 'Ctrl+V'),
+  ];
+
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final BleService _bleService = BleService();
@@ -203,6 +219,24 @@ class _InputPageState extends State<InputPage> {
     }
   }
 
+  Future<void> _sendSpecialKey(String keyName) async {
+    if (_inputPaused) {
+      return;
+    }
+
+    try {
+      await _bleService.sendSpecialKey(keyName, _seq++);
+      Logger.debug('special key sent: $keyName');
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('特殊按键发送失败')),
+      );
+    }
+  }
+
   void _autoClearSegment() {
     final text = _controller.text;
     if (text.isEmpty || text.length <= Constants.autoClearThresholdChars) {
@@ -287,6 +321,22 @@ class _InputPageState extends State<InputPage> {
             const SizedBox(height: 18),
             Text('本次已输入: $_totalChars 字'),
             const SizedBox(height: 16),
+            SizedBox(
+              height: 44,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _specialKeys.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final keyItem = _specialKeys[index];
+                  return OutlinedButton(
+                    onPressed: () => _sendSpecialKey(keyItem.keyName),
+                    child: Text(keyItem.label),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: _controller,
               focusNode: _focusNode,

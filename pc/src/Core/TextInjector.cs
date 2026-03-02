@@ -152,6 +152,27 @@ public sealed class NativeInputSender : IInputSender
 
 public sealed class TextInjector
 {
+    private static readonly Dictionary<string, ushort> SingleKeyMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Tab"] = NativeMethods.VK_TAB,
+        ["Enter"] = NativeMethods.VK_RETURN,
+        ["Esc"] = NativeMethods.VK_ESCAPE,
+        ["Left"] = NativeMethods.VK_LEFT,
+        ["Right"] = NativeMethods.VK_RIGHT,
+        ["Up"] = NativeMethods.VK_UP,
+        ["Down"] = NativeMethods.VK_DOWN,
+        ["Home"] = NativeMethods.VK_HOME,
+        ["End"] = NativeMethods.VK_END
+    };
+
+    private static readonly Dictionary<string, ushort> CtrlComboMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Ctrl+A"] = 0x41,
+        ["Ctrl+Z"] = 0x5A,
+        ["Ctrl+C"] = 0x43,
+        ["Ctrl+V"] = 0x56
+    };
+
     private readonly IInputSender _inputSender;
     private readonly IClipboardService _clipboardService;
 
@@ -227,6 +248,20 @@ public sealed class TextInjector
         }
 
         InjectFullSync(message.Text);
+    }
+
+    public void HandleSpecialKey(SpecialKeyMessage message)
+    {
+        if (CtrlComboMap.TryGetValue(message.Key, out var ctrlKey))
+        {
+            _inputSender.SendShortcut(NativeMethods.VK_CONTROL, ctrlKey);
+            return;
+        }
+
+        if (SingleKeyMap.TryGetValue(message.Key, out var virtualKey))
+        {
+            _inputSender.SendVirtualKey(virtualKey);
+        }
     }
 
     private void ClipboardInject(string text)

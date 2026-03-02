@@ -8,6 +8,7 @@ public enum MessageType
     InputStarted = 0x04,
     InputStopped = 0x05,
     SegmentComplete = 0x06,
+    SpecialKey = 0x07,
     Activate = 0x81,
     Deactivate = 0x82,
     SyncRequest = 0x83,
@@ -67,4 +68,11 @@ public sealed class InputStartedMessage : IProtocolMessage
 public sealed class InputStoppedMessage : IProtocolMessage
 {
     public MessageType MessageType { get; init; } = MessageType.InputStopped;
+}
+
+public sealed class SpecialKeyMessage : IProtocolMessage
+{
+    public MessageType MessageType { get; init; } = MessageType.SpecialKey;
+    public int Seq { get; init; }
+    public string Key { get; init; } = string.Empty;
 }

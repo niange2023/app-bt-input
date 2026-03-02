@@ -15,6 +15,7 @@ class Constants {
   static const int msgInputStarted = 0x04;
   static const int msgInputStopped = 0x05;
   static const int msgSegmentComplete = 0x06;
+  static const int msgSpecialKey = 0x07;
 
   static const int msgActivate = 0x81;
   static const int msgDeactivate = 0x82;

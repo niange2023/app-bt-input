@@ -101,6 +101,17 @@ class BleService {
     }
   }
 
+  Future<void> sendSpecialKey(String keyName, int seq) async {
+    try {
+      final payload = _protocol.encodeSpecialKey(seq, keyName);
+      Logger.debug('sendSpecialKey seq=$seq key=$keyName payload=$payload');
+      await _notifyTextPayloadAsync(payload);
+    } catch (error) {
+      Logger.debug('sendSpecialKey failed: $error');
+      rethrow;
+    }
+  }
+
   Future<void> _initializeCentralFallbackAsync() async {
     Logger.debug('Initializing BLE in central fallback mode');
   }

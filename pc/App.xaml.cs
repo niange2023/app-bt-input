@@ -166,6 +166,20 @@ public partial class App : System.Windows.Application
             _floatingBar?.UpdateInterimText(textDeltaMessage.Text);
         }
 
+        if (message is SpecialKeyMessage specialKeyMessage)
+        {
+            if (_isReconnecting || _awaitingFullSync)
+            {
+                _floatingBar?.UpdateInterimText("🔴 连接已断开 · 重连中...");
+                return;
+            }
+
+            _textInjector.HandleSpecialKey(specialKeyMessage);
+            _trayManager?.UpdateState(TrayState.Active, deviceName: _bleManager.ConnectedDeviceName, activated: true);
+            _floatingBar?.SetInputActive(true);
+            _floatingBar?.UpdateInterimText($"按键: {specialKeyMessage.Key}");
+        }
+
         if (_protocolDecoder.SequenceGapDetected)
         {
             _awaitingFullSync = true;

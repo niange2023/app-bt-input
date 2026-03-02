@@ -55,6 +55,8 @@ public sealed class ProtocolDecoder
                     return new InputStoppedMessage();
                 case MessageType.SegmentComplete:
                     return DecodeSegmentComplete(root);
+                case MessageType.SpecialKey:
+                    return DecodeSpecialKey(root);
                 default:
                     return null;
             }
@@ -160,6 +162,18 @@ public sealed class ProtocolDecoder
         {
             Seq = sequence,
             TotalChars = root.TryGetProperty("total_chars", out var totalCharsElement) ? totalCharsElement.GetInt32() : 0
+        };
+    }
+
+    private SpecialKeyMessage DecodeSpecialKey(JsonElement root)
+    {
+        var sequence = root.TryGetProperty("s", out var seqElement) ? seqElement.GetInt32() : 0;
+        ValidateSequence(sequence);
+
+        return new SpecialKeyMessage
+        {
+            Seq = sequence,
+            Key = root.TryGetProperty("k", out var keyElement) ? keyElement.GetString() ?? string.Empty : string.Empty
         };
     }
 

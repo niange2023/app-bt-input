@@ -44,6 +44,15 @@ class Protocol {
     return jsonEncode(payload);
   }
 
+  String encodeSpecialKey(int seq, String keyName) {
+    final payload = <String, dynamic>{
+      't': Constants.msgSpecialKey,
+      's': seq,
+      'k': keyName,
+    };
+    return jsonEncode(payload);
+  }
+
   String _opCode(DeltaOp op) {
     switch (op) {
       case DeltaOp.append:

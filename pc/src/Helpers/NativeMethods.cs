@@ -22,7 +22,15 @@ public static class NativeMethods
     public const uint KEYEVENTF_UNICODE = 0x0004;
 
     public const ushort VK_BACK = 0x08;
+    public const ushort VK_TAB = 0x09;
     public const ushort VK_CONTROL = 0x11;
+    public const ushort VK_ESCAPE = 0x1B;
+    public const ushort VK_HOME = 0x24;
+    public const ushort VK_LEFT = 0x25;
+    public const ushort VK_UP = 0x26;
+    public const ushort VK_RIGHT = 0x27;
+    public const ushort VK_DOWN = 0x28;
+    public const ushort VK_END = 0x23;
     public const ushort VK_RETURN = 0x0D;
 
     [DllImport("user32.dll", SetLastError = true)]
