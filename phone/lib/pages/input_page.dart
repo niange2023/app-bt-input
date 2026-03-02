@@ -391,7 +391,7 @@ class _InputPageState extends State<InputPage> {
                       width: 220,
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface.withOpacity(0.92),
+                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.92),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                       ),
@@ -406,7 +406,7 @@ class _InputPageState extends State<InputPage> {
                             Text(tr(context, zh: '发送字符: ${snapshot.totalCharsSent}', en: 'Chars sent: ${snapshot.totalCharsSent}')),
                             Text(tr(context, zh: 'BLE 包数: ${snapshot.blePacketsSent}', en: 'BLE packets: ${snapshot.blePacketsSent}')),
                             Text(tr(context, zh: 'BLE 字节: ${snapshot.totalBleBytesSent}', en: 'BLE bytes: ${snapshot.totalBleBytesSent}')),
-                            Text(tr(context, zh: '内存: ${memoryMb} MB', en: 'Memory: ${memoryMb} MB')),
+                            Text(tr(context, zh: '内存: $memoryMb MB', en: 'Memory: $memoryMb MB')),
                             Text(tr(context, zh: '重连次数: ${snapshot.reconnectionCount}', en: 'Reconnects: ${snapshot.reconnectionCount}')),
                           ],
                         ),
@@ -441,10 +441,23 @@ class _InputWave extends StatelessWidget {
         gradient: active
             ? LinearGradient(
                 colors: tick
-                    ? [color.withOpacity(0.15), color.withOpacity(0.55), color.withOpacity(0.15)]
-                    : [color.withOpacity(0.55), color.withOpacity(0.15), color.withOpacity(0.55)],
+                    ? [
+                        color.withValues(alpha: 0.15),
+                        color.withValues(alpha: 0.55),
+                        color.withValues(alpha: 0.15),
+                      ]
+                    : [
+                        color.withValues(alpha: 0.55),
+                        color.withValues(alpha: 0.15),
+                        color.withValues(alpha: 0.55),
+                      ],
               )
-            : LinearGradient(colors: [color.withOpacity(0.08), color.withOpacity(0.08)]),
+            : LinearGradient(
+                colors: [
+                  color.withValues(alpha: 0.08),
+                  color.withValues(alpha: 0.08),
+                ],
+              ),
       ),
     );
   }

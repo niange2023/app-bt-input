@@ -111,7 +111,7 @@ class _ConnectionPageState extends State<ConnectionPage> with TickerProviderStat
                     height: 86,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), width: 2),
+                      border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3), width: 2),
                     ),
                   ),
                   Icon(Icons.bluetooth, size: 72, color: Theme.of(context).colorScheme.primary),
@@ -132,7 +132,7 @@ class _ConnectionPageState extends State<ConnectionPage> with TickerProviderStat
                 child: ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),
                   itemCount: _devices.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (context, index) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final device = _devices[index];
                     return Card(

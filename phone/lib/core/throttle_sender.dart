@@ -15,7 +15,7 @@ class ThrottledDiffSender {
 
   final DeltaSendCallback _onSend;
   final Duration _throttleWindow;
-  DiffEngine _diffEngine = DiffEngine();
+  final DiffEngine _diffEngine = DiffEngine();
 
   Timer? _windowTimer;
   String? _bufferedText;

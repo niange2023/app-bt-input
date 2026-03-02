@@ -77,6 +77,11 @@ class BleService {
 
   Future<void> disconnectAsync() async {
     try {
+      final control = _controlCharacteristic;
+      if (control != null) {
+        await control.setNotifyValue(false);
+      }
+
       final dynamic device = _connectedDevice;
       if (device != null) {
         await device.disconnect();
