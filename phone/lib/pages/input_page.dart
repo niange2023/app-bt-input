@@ -7,6 +7,7 @@ import '../core/throttle_sender.dart';
 import '../models/connection_state.dart';
 import '../services/ble_service.dart';
 import '../utils/constants.dart';
+import '../utils/i18n.dart';
 import '../utils/logger.dart';
 
 class InputPage extends StatefulWidget {
@@ -44,11 +45,13 @@ class _InputPageState extends State<InputPage> {
   bool _inputPaused = false;
   int _segmentCommittedChars = 0;
   Timer? _idleTimer;
+  Timer? _waveTimer;
   StreamSubscription<ControlCommand>? _controlSubscription;
   StreamSubscription<bool>? _connectionSubscription;
   int _seq = 1;
   bool _reconnecting = false;
   Object? _lastConnectedDevice;
+  bool _waveTick = false;
 
   int get _totalChars => _segmentCommittedChars + _controller.text.length;
 
@@ -69,11 +72,23 @@ class _InputPageState extends State<InputPage> {
         _focusNode.requestFocus();
       }
     });
+
+    _waveTimer = Timer.periodic(const Duration(milliseconds: 700), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      setState(() {
+        _waveTick = !_waveTick;
+      });
+    });
   }
 
   @override
   void dispose() {
     _idleTimer?.cancel();
+    _waveTimer?.cancel();
     _controlSubscription?.cancel();
     _connectionSubscription?.cancel();
     _focusNode.dispose();
@@ -93,7 +108,7 @@ class _InputPageState extends State<InputPage> {
 
       if (_reconnecting) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('已重连'), duration: Duration(milliseconds: 1200)),
+          SnackBar(content: Text(tr(context, zh: '已重连', en: 'Reconnected')), duration: const Duration(milliseconds: 1200)),
         );
       }
       _reconnecting = false;
@@ -105,7 +120,7 @@ class _InputPageState extends State<InputPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('连接已断开，正在重连...')),
+      SnackBar(content: Text(tr(context, zh: '连接已断开，正在重连...', en: 'Disconnected, reconnecting...'))),
     );
 
     _startReconnectFlow();
@@ -162,8 +177,8 @@ class _InputPageState extends State<InputPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('重连失败'),
-          content: const Text('5 次重连失败，请选择下一步操作。'),
+          title: Text(tr(context, zh: '重连失败', en: 'Reconnect Failed')),
+          content: Text(tr(context, zh: '5 次重连失败，请选择下一步操作。', en: 'Reconnection failed after 5 attempts.')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop('retry'),
@@ -232,7 +247,7 @@ class _InputPageState extends State<InputPage> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('特殊按键发送失败')),
+        SnackBar(content: Text(tr(context, zh: '特殊按键发送失败', en: 'Failed to send special key'))),
       );
     }
   }
@@ -276,7 +291,7 @@ class _InputPageState extends State<InputPage> {
               decoration: BoxDecoration(color: _statusColor(), shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
-            const Expanded(child: Text('已连接: ThinkPad')),
+            Expanded(child: Text(tr(context, zh: '已连接: ThinkPad', en: 'Connected: ThinkPad'))),
             IconButton(
               onPressed: () => Navigator.of(context).pushNamed('/settings'),
               icon: const Icon(Icons.settings),
@@ -298,7 +313,7 @@ class _InputPageState extends State<InputPage> {
                   color: Colors.orange.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('PC 已停用输入（DEACTIVATE）'),
+                child: Text(tr(context, zh: 'PC 已停用输入（DEACTIVATE）', en: 'PC input paused (DEACTIVATE)')),
               ),
             const SizedBox(height: 12),
             if (_reconnecting)
@@ -310,16 +325,16 @@ class _InputPageState extends State<InputPage> {
                   color: Colors.orange.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text('连接已断开，正在重连...'),
+                child: Text(tr(context, zh: '连接已断开，正在重连...', en: 'Disconnected, reconnecting...')),
               ),
-            const Center(
+            Center(
               child: Text(
-                '在下方输入框中输入文字，文字将实时出现在电脑上',
-                style: TextStyle(color: Colors.black54),
+                tr(context, zh: '在下方输入框中输入文字，文字将实时出现在电脑上', en: 'Type below and text appears on PC in real time.'),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(height: 18),
-            Text('本次已输入: $_totalChars 字'),
+            Text(tr(context, zh: '本次已输入: $_totalChars 字', en: 'Characters sent: $_totalChars')),
             const SizedBox(height: 16),
             SizedBox(
               height: 44,
@@ -342,13 +357,42 @@ class _InputPageState extends State<InputPage> {
               focusNode: _focusNode,
               onChanged: _onTextChanged,
               maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: '在此输入...',
+              decoration: InputDecoration(
+                hintText: tr(context, zh: '在此输入...', en: 'Type here...'),
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 14),
+            _InputWave(active: !_inputPaused && !_reconnecting && _connectionState == ConnectionStateModel.connected, tick: _waveTick),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _InputWave extends StatelessWidget {
+  const _InputWave({required this.active, required this.tick});
+
+  final bool active;
+  final bool tick;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      height: 10,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: active
+            ? LinearGradient(
+                colors: tick
+                    ? [color.withOpacity(0.15), color.withOpacity(0.55), color.withOpacity(0.15)]
+                    : [color.withOpacity(0.55), color.withOpacity(0.15), color.withOpacity(0.55)],
+              )
+            : LinearGradient(colors: [color.withOpacity(0.08), color.withOpacity(0.08)]),
       ),
     );
   }

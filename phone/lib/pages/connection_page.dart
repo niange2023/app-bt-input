@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/device_info.dart';
+import '../utils/i18n.dart';
 
 class ConnectionPage extends StatefulWidget {
   const ConnectionPage({super.key});
@@ -9,8 +10,9 @@ class ConnectionPage extends StatefulWidget {
   State<ConnectionPage> createState() => _ConnectionPageState();
 }
 
-class _ConnectionPageState extends State<ConnectionPage> with SingleTickerProviderStateMixin {
+class _ConnectionPageState extends State<ConnectionPage> with TickerProviderStateMixin {
   late final AnimationController _pulseController;
+  late final AnimationController _rotateController;
   bool _isConnecting = false;
 
   final List<DeviceInfo> _devices = <DeviceInfo>[
@@ -25,11 +27,17 @@ class _ConnectionPageState extends State<ConnectionPage> with SingleTickerProvid
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
+
+    _rotateController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    _rotateController.dispose();
     super.dispose();
   }
 
@@ -72,7 +80,7 @@ class _ConnectionPageState extends State<ConnectionPage> with SingleTickerProvid
         title: const Text('BT Input'),
         actions: [
           IconButton(
-            tooltip: '使用说明',
+            tooltip: tr(context, zh: '使用说明', en: 'Help'),
             onPressed: _openUsageHelp,
             icon: const Icon(Icons.help_outline),
           ),
@@ -84,19 +92,38 @@ class _ConnectionPageState extends State<ConnectionPage> with SingleTickerProvid
           children: [
             const SizedBox(height: 20),
             AnimatedBuilder(
-              animation: _pulseController,
+              animation: Listenable.merge([_pulseController, _rotateController]),
               builder: (context, child) {
                 final scale = 0.9 + (_pulseController.value * 0.2);
-                return Transform.scale(scale: scale, child: child);
+                return Transform.scale(
+                  scale: scale,
+                  child: Transform.rotate(
+                    angle: _rotateController.value * 6.28318,
+                    child: child,
+                  ),
+                );
               },
-              child: const Icon(Icons.bluetooth, size: 72, color: Colors.blue),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 86,
+                    height: 86,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.3), width: 2),
+                    ),
+                  ),
+                  Icon(Icons.bluetooth, size: 72, color: Theme.of(context).colorScheme.primary),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
-            Text(_isConnecting ? '连接中...' : '正在搜索附近的 BT Input...'),
+            Text(_isConnecting ? tr(context, zh: '连接中...', en: 'Connecting...') : tr(context, zh: '正在搜索附近的 BT Input...', en: 'Scanning for nearby BT Input devices...')),
             const SizedBox(height: 8),
-            const Text(
-              '确保电脑端 BT Input 已启动',
-              style: TextStyle(color: Colors.black54),
+            Text(
+              tr(context, zh: '确保电脑端 BT Input 已启动', en: 'Make sure BT Input is running on your PC.'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 20),
             Expanded(
@@ -112,7 +139,7 @@ class _ConnectionPageState extends State<ConnectionPage> with SingleTickerProvid
                       child: ListTile(
                         leading: const Icon(Icons.computer),
                         title: Text(device.name),
-                        subtitle: Text('信号: ${device.signalStrength} dBm'),
+                        subtitle: Text(tr(context, zh: '信号: ${device.signalStrength} dBm', en: 'Signal: ${device.signalStrength} dBm')),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () => _connectToDevice(device),
                       ),
@@ -134,19 +161,19 @@ class UsageHelpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('使用说明')),
-      body: const Padding(
+      appBar: AppBar(title: Text(tr(context, zh: '使用说明', en: 'Usage Guide'))),
+      body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('1. 先在电脑启动 BT Input。'),
-            SizedBox(height: 8),
-            Text('2. 保持手机与电脑蓝牙开启。'),
-            SizedBox(height: 8),
-            Text('3. 在连接页点击电脑设备完成连接。'),
-            SizedBox(height: 8),
-            Text('4. 进入输入页后，输入内容会实时发送到电脑。'),
+            Text(tr(context, zh: '1. 先在电脑启动 BT Input。', en: '1. Start BT Input on your PC first.')),
+            const SizedBox(height: 8),
+            Text(tr(context, zh: '2. 保持手机与电脑蓝牙开启。', en: '2. Keep Bluetooth enabled on both phone and PC.')),
+            const SizedBox(height: 8),
+            Text(tr(context, zh: '3. 在连接页点击电脑设备完成连接。', en: '3. Tap your PC in the connection page.')),
+            const SizedBox(height: 8),
+            Text(tr(context, zh: '4. 进入输入页后，输入内容会实时发送到电脑。', en: '4. In Input page, text is sent to PC in real time.')),
           ],
         ),
       ),

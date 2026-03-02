@@ -74,7 +74,16 @@ public partial class FloatingBar : Window
 
     public void UpdateInterimText(string text)
     {
-        PreviewText.Text = string.IsNullOrWhiteSpace(text) ? "已连接" : text;
+        var nextText = string.IsNullOrWhiteSpace(text) ? "已连接" : text;
+        var fadeOut = new DoubleAnimation(1, 0.35, TimeSpan.FromMilliseconds(70));
+        fadeOut.Completed += (_, _) =>
+        {
+            PreviewText.Text = nextText;
+            var fadeIn = new DoubleAnimation(0.35, 1, TimeSpan.FromMilliseconds(130));
+            PreviewText.BeginAnimation(OpacityProperty, fadeIn);
+        };
+
+        PreviewText.BeginAnimation(OpacityProperty, fadeOut);
     }
 
     public void SetInputActive(bool active)

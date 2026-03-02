@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/i18n.dart';
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -16,11 +18,11 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
+      appBar: AppBar(title: Text(tr(context, zh: '设置', en: 'Settings'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('连接管理', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(tr(context, zh: '连接管理', en: 'Connection'), style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Card(
             child: Padding(
@@ -30,12 +32,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Row(
                     children: [
-                      const Expanded(child: Text('当前设备: ThinkPad')),
-                      TextButton(onPressed: () {}, child: const Text('断开')),
+                      Expanded(child: Text(tr(context, zh: '当前设备: ThinkPad', en: 'Current device: ThinkPad'))),
+                      TextButton(onPressed: () {}, child: Text(tr(context, zh: '断开', en: 'Disconnect'))),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text('已保存设备:'),
+                  Text(tr(context, zh: '已保存设备:', en: 'Paired devices:')),
                   const SizedBox(height: 6),
                   ..._pairedDevices.map((name) => Text('- $name')),
                 ],
@@ -43,7 +45,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 14),
-          const Text('输入设置', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(tr(context, zh: '输入设置', en: 'Input'), style: const TextStyle(fontWeight: FontWeight.bold)),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -51,8 +53,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Row(
                     children: [
-                      const Expanded(child: Text('自动清空阈值')),
-                      Text('${_autoClearThreshold.round()} 字符'),
+                      Expanded(child: Text(tr(context, zh: '自动清空阈值', en: 'Auto-clear threshold'))),
+                      Text(tr(context, zh: '${_autoClearThreshold.round()} 字符', en: '${_autoClearThreshold.round()} chars')),
                     ],
                   ),
                   Slider(
@@ -64,8 +66,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   Row(
                     children: [
-                      const Expanded(child: Text('清空等待时间')),
-                      Text('${_autoClearTimeout.toStringAsFixed(1)} 秒'),
+                      Expanded(child: Text(tr(context, zh: '清空等待时间', en: 'Clear idle timeout'))),
+                      Text(tr(context, zh: '${_autoClearTimeout.toStringAsFixed(1)} 秒', en: '${_autoClearTimeout.toStringAsFixed(1)} s')),
                     ],
                   ),
                   Slider(
@@ -80,16 +82,16 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 14),
-          const Text('关于', style: TextStyle(fontWeight: FontWeight.bold)),
-          const Card(
+          Text(tr(context, zh: '关于', en: 'About'), style: const TextStyle(fontWeight: FontWeight.bold)),
+          Card(
             child: Padding(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('版本: 1.0.0'),
-                  SizedBox(height: 4),
-                  Text('BT Input'),
+                  Text(tr(context, zh: '版本: 1.0.0', en: 'Version: 1.0.0')),
+                  const SizedBox(height: 4),
+                  const Text('BT Input'),
                 ],
               ),
             ),
