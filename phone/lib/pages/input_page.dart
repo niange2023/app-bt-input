@@ -29,7 +29,10 @@ class _InputPageState extends State<InputPage> {
   int _segmentCommittedChars = 0;
   Timer? _idleTimer;
   StreamSubscription<ControlCommand>? _controlSubscription;
+  StreamSubscription<bool>? _connectionSubscription;
   int _seq = 1;
+  bool _reconnecting = false;
+  Object? _lastConnectedDevice;
 
   int get _totalChars => _segmentCommittedChars + _controller.text.length;
 
@@ -43,6 +46,7 @@ class _InputPageState extends State<InputPage> {
     );
 
     _controlSubscription = _bleService.controlCommands.listen(_handleControlCommand);
+    _connectionSubscription = _bleService.connectionChanges.listen(_onConnectionChanged);
 
     Future<void>.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
@@ -55,9 +59,114 @@ class _InputPageState extends State<InputPage> {
   void dispose() {
     _idleTimer?.cancel();
     _controlSubscription?.cancel();
+    _connectionSubscription?.cancel();
     _focusNode.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onConnectionChanged(bool connected) {
+    if (!mounted) {
+      return;
+    }
+
+    if (connected) {
+      setState(() {
+        _connectionState = ConnectionStateModel.connected;
+      });
+
+      if (_reconnecting) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('已重连'), duration: Duration(milliseconds: 1200)),
+        );
+      }
+      _reconnecting = false;
+      return;
+    }
+
+    setState(() {
+      _connectionState = ConnectionStateModel.disconnected;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('连接已断开，正在重连...')),
+    );
+
+    _startReconnectFlow();
+  }
+
+  Future<void> _startReconnectFlow() async {
+    if (_reconnecting) {
+      return;
+    }
+
+    _reconnecting = true;
+    for (int attempt = 1; attempt <= 5; attempt++) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _connectionState = ConnectionStateModel.connecting;
+      });
+
+      final delay = Duration(seconds: 1 << (attempt - 1));
+      await Future<void>.delayed(delay);
+
+      final device = _lastConnectedDevice;
+      if (device == null) {
+        continue;
+      }
+
+      try {
+        await _bleService.connectAsync(device);
+        if (!mounted) {
+          return;
+        }
+
+        _reconnecting = false;
+        setState(() {
+          _connectionState = ConnectionStateModel.connected;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('已重连'), duration: Duration(milliseconds: 1200)),
+        );
+        return;
+      } catch (_) {
+        // Continue trying until max attempts reached.
+      }
+    }
+
+    _reconnecting = false;
+    if (!mounted) {
+      return;
+    }
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('重连失败'),
+          content: const Text('5 次重连失败，请选择下一步操作。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('retry'),
+              child: const Text('Retry'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('goto_connection'),
+              child: const Text('Go to Connection Page'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == 'retry') {
+      _startReconnectFlow();
+    } else if (result == 'goto_connection' && mounted) {
+      Navigator.of(context).pushReplacementNamed('/');
+    }
   }
 
   void _handleControlCommand(ControlCommand command) {
@@ -158,6 +267,17 @@ class _InputPageState extends State<InputPage> {
                 child: const Text('PC 已停用输入（DEACTIVATE）'),
               ),
             const SizedBox(height: 12),
+            if (_reconnecting)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('连接已断开，正在重连...'),
+              ),
             const Center(
               child: Text(
                 '在下方输入框中输入文字，文字将实时出现在电脑上',

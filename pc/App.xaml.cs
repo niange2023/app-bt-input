@@ -15,7 +15,10 @@ public partial class App : System.Windows.Application
     private ProtocolDecoder? _protocolDecoder;
     private TextInjector? _textInjector;
     private FloatingBar? _floatingBar;
+    private readonly Queue<TextDeltaMessage> _bufferedDeltas = new();
     private bool _isActivated;
+    private bool _isReconnecting;
+    private bool _awaitingFullSync;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -43,17 +46,22 @@ public partial class App : System.Windows.Application
     {
         if (connected)
         {
-            _trayManager?.UpdateState(_isActivated ? TrayState.Active : TrayState.Connected, deviceName: _bleManager?.ConnectedDeviceName, activated: _isActivated);
-            _floatingBar?.UpdateStatus(FloatingConnectionStatus.Connected);
+            _awaitingFullSync = true;
+            _trayManager?.UpdateState(TrayState.Connecting, deviceName: _bleManager?.ConnectedDeviceName, activated: _isActivated);
+            _floatingBar?.UpdateStatus(FloatingConnectionStatus.Connecting);
+            _floatingBar?.UpdateInterimText("同步中...");
             if (_bleManager is not null)
             {
-                await _bleManager.SendControlAsync(Encoding.UTF8.GetBytes("{\"t\":129}"));
+                await _bleManager.SendControlAsync(Encoding.UTF8.GetBytes("{\"t\":131}"));
             }
         }
         else
         {
-            _trayManager?.UpdateState(TrayState.Disconnected);
+            _isReconnecting = true;
+            _awaitingFullSync = true;
+            _trayManager?.UpdateState(TrayState.Connecting, deviceName: _bleManager?.ConnectedDeviceName, activated: _isActivated);
             _floatingBar?.UpdateStatus(FloatingConnectionStatus.Disconnected);
+            _floatingBar?.UpdateInterimText("🔴 连接已断开 · 重连中...");
         }
     }
 
@@ -65,8 +73,36 @@ public partial class App : System.Windows.Application
         }
 
         var message = _protocolDecoder.Decode(bytes);
+        if (message is TextFullSyncMessage fullSync)
+        {
+            if (_awaitingFullSync)
+            {
+                _textInjector.InjectFullSync(fullSync.Text);
+                _awaitingFullSync = false;
+                _isReconnecting = false;
+
+                while (_bufferedDeltas.Count > 0)
+                {
+                    var buffered = _bufferedDeltas.Dequeue();
+                    _textInjector.HandleDelta(buffered);
+                }
+
+                _trayManager?.UpdateState(_isActivated ? TrayState.Active : TrayState.Connected, deviceName: _bleManager.ConnectedDeviceName, activated: _isActivated);
+                _floatingBar?.UpdateStatus(FloatingConnectionStatus.Connected);
+                _floatingBar?.UpdateInterimText("已重连");
+            }
+            return;
+        }
+
         if (message is TextDeltaMessage textDeltaMessage)
         {
+            if (_isReconnecting || _awaitingFullSync)
+            {
+                _bufferedDeltas.Enqueue(textDeltaMessage);
+                _floatingBar?.UpdateInterimText("🔴 连接已断开 · 重连中...");
+                return;
+            }
+
             _textInjector.HandleDelta(textDeltaMessage);
             _trayManager?.UpdateState(TrayState.Active, deviceName: _bleManager.ConnectedDeviceName, activated: true);
             _floatingBar?.SetInputActive(true);
@@ -75,6 +111,7 @@ public partial class App : System.Windows.Application
 
         if (_protocolDecoder.SequenceGapDetected)
         {
+            _awaitingFullSync = true;
             await _bleManager.SendControlAsync(Encoding.UTF8.GetBytes("{\"t\":131}"));
         }
     }
