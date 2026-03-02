@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'pages/connection_page.dart';
+import 'pages/input_page.dart';
+import 'pages/settings_page.dart';
 
 class BtInputApp extends StatelessWidget {
   const BtInputApp({super.key});
@@ -10,7 +12,12 @@ class BtInputApp extends StatelessWidget {
     return MaterialApp(
       title: 'BT Input',
       theme: ThemeData(useMaterial3: true),
-      home: const ConnectionPage(),
+      initialRoute: '/',
+      routes: {
+        '/': (_) => const ConnectionPage(),
+        '/input': (_) => const InputPage(),
+        '/settings': (_) => const SettingsPage(),
+      },
     );
   }
 }
