@@ -3,9 +3,17 @@ using System.IO;
 
 namespace BtInput.Helpers;
 
-public sealed record AppSettings(bool FirstRunCompleted)
+public sealed class AppSettings
 {
-    public static AppSettings Default => new(FirstRunCompleted: false);
+    public bool FirstRunCompleted { get; set; }
+    public uint HotkeyModifiers { get; set; } = Constants.DefaultHotkeyModifiers;
+    public uint HotkeyVirtualKey { get; set; } = Constants.DefaultHotkeyVirtualKey;
+    public bool AutoStartEnabled { get; set; }
+    public bool RememberLastDevice { get; set; }
+    public ulong? LastDeviceAddress { get; set; }
+    public string? LastDeviceName { get; set; }
+
+    public static AppSettings Default => new();
 }
 
 public sealed class AppSettingsStore

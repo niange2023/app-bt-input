@@ -34,6 +34,8 @@ public sealed class BleManager : IAsyncDisposable
 
     public string ConnectedDeviceName => _device?.Name ?? string.Empty;
 
+    public ulong ConnectedDeviceAddress => _device?.BluetoothAddress ?? _lastBluetoothAddress ?? 0;
+
     public async Task StartScanAsync()
     {
         StopScan();

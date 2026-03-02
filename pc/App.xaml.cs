@@ -11,6 +11,7 @@ public partial class App : System.Windows.Application
 {
     private TrayManager? _trayManager;
     private HotkeyManager? _hotkeyManager;
+    private StartupManager? _startupManager;
     private BleManager? _bleManager;
     private ProtocolDecoder? _protocolDecoder;
     private TextInjector? _textInjector;
@@ -33,11 +34,15 @@ public partial class App : System.Windows.Application
         _trayManager = new TrayManager();
         _trayManager.ExitRequested += (_, _) => Shutdown();
         _trayManager.ToggleRequested += (_, _) => ToggleActivation();
+        _trayManager.SettingsRequested += (_, _) => OpenSettings();
         _trayManager.UpdateState(TrayState.Disconnected);
 
         _hotkeyManager = new HotkeyManager();
         _hotkeyManager.HotkeyPressed += (_, _) => ToggleActivation();
-        _hotkeyManager.Register(Constants.DefaultHotkeyModifiers, Constants.DefaultHotkeyVirtualKey);
+        _hotkeyManager.Register(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
+
+        _startupManager = new StartupManager();
+        _startupManager.Apply(_settings.AutoStartEnabled);
 
         _protocolDecoder = new ProtocolDecoder();
         _textInjector = new TextInjector();
@@ -47,6 +52,11 @@ public partial class App : System.Windows.Application
 
         _floatingBar = new FloatingBar();
 
+        if (_settings.RememberLastDevice && _settings.LastDeviceAddress is > 0)
+        {
+            _ = TryAutoConnectRememberedDeviceAsync(_settings.LastDeviceAddress.Value);
+        }
+
         if (!_settings.FirstRunCompleted)
         {
             _firstRunWindow = new FirstRunWindow();
@@ -55,17 +65,40 @@ public partial class App : System.Windows.Application
         }
     }
 
+    private async Task TryAutoConnectRememberedDeviceAsync(ulong deviceAddress)
+    {
+        if (_bleManager is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _bleManager.ConnectAsync(deviceAddress);
+        }
+        catch
+        {
+        }
+    }
+
     private async void OnConnectionChanged(bool connected)
     {
         if (connected && !_settings.FirstRunCompleted && _settingsStore is not null)
         {
-            _settings = _settings with { FirstRunCompleted = true };
+            _settings.FirstRunCompleted = true;
             _settingsStore.Save(_settings);
             await Dispatcher.InvokeAsync(() =>
             {
                 _firstRunWindow?.Close();
                 _firstRunWindow = null;
             });
+        }
+
+        if (connected && _settingsStore is not null && _bleManager is not null && _settings.RememberLastDevice)
+        {
+            _settings.LastDeviceAddress = _bleManager.ConnectedDeviceAddress;
+            _settings.LastDeviceName = _bleManager.ConnectedDeviceName;
+            _settingsStore.Save(_settings);
         }
 
         if (connected)
@@ -160,6 +193,37 @@ public partial class App : System.Windows.Application
             var controlPayload = _isActivated ? "{\"t\":129}" : "{\"t\":130}";
             await _bleManager.SendControlAsync(Encoding.UTF8.GetBytes(controlPayload));
         }
+    }
+
+    private void OpenSettings()
+    {
+        if (_settingsStore is null || _hotkeyManager is null || _startupManager is null)
+        {
+            return;
+        }
+
+        var window = new SettingsWindow(_settings)
+        {
+            Owner = Current?.Windows.OfType<System.Windows.Window>().FirstOrDefault(window => window.IsActive)
+        };
+
+        var result = window.ShowDialog();
+        if (result != true || window.ResultSettings is null)
+        {
+            return;
+        }
+
+        var updatedSettings = window.ResultSettings;
+        updatedSettings.FirstRunCompleted = _settings.FirstRunCompleted;
+        updatedSettings.LastDeviceAddress = updatedSettings.RememberLastDevice ? _settings.LastDeviceAddress : null;
+        updatedSettings.LastDeviceName = updatedSettings.RememberLastDevice ? _settings.LastDeviceName : null;
+
+        _settings = updatedSettings;
+        _settingsStore.Save(_settings);
+
+        _hotkeyManager.Unregister();
+        _hotkeyManager.Register(_settings.HotkeyModifiers, _settings.HotkeyVirtualKey);
+        _startupManager.Apply(_settings.AutoStartEnabled);
     }
 
     protected override void OnExit(ExitEventArgs e)
