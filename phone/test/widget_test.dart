@@ -6,6 +6,6 @@ void main() {
   testWidgets('shows connection page placeholder', (WidgetTester tester) async {
     await tester.pumpWidget(const BtInputApp());
 
-    expect(find.text('ConnectionPage placeholder'), findsOneWidget);
+    expect(find.text('正在搜索附近的 BT Input...'), findsOneWidget);
   });
 }

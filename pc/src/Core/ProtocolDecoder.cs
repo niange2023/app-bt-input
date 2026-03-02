@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Diagnostics;
 using BtInput.Protocol;
 
 namespace BtInput.Core;
@@ -28,32 +29,40 @@ public sealed class ProtocolDecoder
             }
         }
 
-        var payload = Encoding.UTF8.GetString(payloadBytes);
-        using var document = JsonDocument.Parse(payload);
-        var root = document.RootElement;
-
-        if (!root.TryGetProperty("t", out var typeElement))
+        try
         {
-            return null;
-        }
+            var payload = Encoding.UTF8.GetString(payloadBytes);
+            using var document = JsonDocument.Parse(payload);
+            var root = document.RootElement;
 
-        var typeCode = typeElement.GetInt32();
-        switch ((MessageType)typeCode)
-        {
-            case MessageType.TextDelta:
-                return DecodeTextDelta(root);
-            case MessageType.TextFullSync:
-                return DecodeTextFullSync(root);
-            case MessageType.Heartbeat:
-                return DecodeHeartbeat(root);
-            case MessageType.InputStarted:
-                return new InputStartedMessage();
-            case MessageType.InputStopped:
-                return new InputStoppedMessage();
-            case MessageType.SegmentComplete:
-                return DecodeSegmentComplete(root);
-            default:
+            if (!root.TryGetProperty("t", out var typeElement))
+            {
                 return null;
+            }
+
+            var typeCode = typeElement.GetInt32();
+            switch ((MessageType)typeCode)
+            {
+                case MessageType.TextDelta:
+                    return DecodeTextDelta(root);
+                case MessageType.TextFullSync:
+                    return DecodeTextFullSync(root);
+                case MessageType.Heartbeat:
+                    return DecodeHeartbeat(root);
+                case MessageType.InputStarted:
+                    return new InputStartedMessage();
+                case MessageType.InputStopped:
+                    return new InputStoppedMessage();
+                case MessageType.SegmentComplete:
+                    return DecodeSegmentComplete(root);
+                default:
+                    return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Protocol decode failed: {ex.Message}");
+            return null;
         }
     }
 

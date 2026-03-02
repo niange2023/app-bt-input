@@ -96,6 +96,7 @@ public sealed class BleManager : IAsyncDisposable
     {
         if (_controlCharacteristic is null)
         {
+            Debug.WriteLine("SendControlAsync skipped: control characteristic is null");
             return;
         }
 
@@ -109,6 +110,8 @@ public sealed class BleManager : IAsyncDisposable
         {
             throw new InvalidOperationException($"Control write failed: {status}");
         }
+
+        Debug.WriteLine($"Control message sent: {Encoding.UTF8.GetString(data)}");
     }
 
     public async Task DisconnectAsync()
@@ -180,12 +183,26 @@ public sealed class BleManager : IAsyncDisposable
 
     private void OnTextValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
     {
-        TextDataReceived?.Invoke(ReadBytes(args.CharacteristicValue));
+        try
+        {
+            TextDataReceived?.Invoke(ReadBytes(args.CharacteristicValue));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"OnTextValueChanged failed: {ex.Message}");
+        }
     }
 
     private void OnStatusValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
     {
-        StatusDataReceived?.Invoke(ReadBytes(args.CharacteristicValue));
+        try
+        {
+            StatusDataReceived?.Invoke(ReadBytes(args.CharacteristicValue));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"OnStatusValueChanged failed: {ex.Message}");
+        }
     }
 
     private async void OnConnectionStatusChanged(BluetoothLEDevice sender, object args)

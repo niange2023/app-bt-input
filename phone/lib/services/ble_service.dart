@@ -48,7 +48,13 @@ class BleService {
   Future<void> connectAsync(Object device) async {
     _connectedDevice = device;
     final dynamic dynamicDevice = device;
-    await dynamicDevice.connect();
+    try {
+      await dynamicDevice.connect();
+      Logger.debug('BLE connected');
+    } catch (error) {
+      Logger.debug('BLE connect failed: $error');
+      rethrow;
+    }
     _connectionController.add(true);
 
     await _negotiateMtuAsync();
@@ -71,16 +77,27 @@ class BleService {
   }
 
   Future<void> sendDelta(TextDelta delta, int seq) async {
-    final payload = _protocol.encode(delta, seq);
-    await _notifyTextPayloadAsync(payload);
+    try {
+      final payload = _protocol.encode(delta, seq);
+      Logger.debug('sendDelta seq=$seq payload=$payload');
+      await _notifyTextPayloadAsync(payload);
+    } catch (error) {
+      Logger.debug('sendDelta failed: $error');
+      rethrow;
+    }
   }
 
   Future<void> sendHeartbeat({required int batteryPercent, required String imeName}) async {
-    final payload = _protocol.encodeHeartbeat(batteryPercent, imeName);
-    final bytes = Uint8List.fromList(utf8.encode(payload));
-    final status = _statusCharacteristic;
-    if (status != null) {
-      await status.write(bytes, withoutResponse: true);
+    try {
+      final payload = _protocol.encodeHeartbeat(batteryPercent, imeName);
+      Logger.debug('sendHeartbeat payload=$payload');
+      final bytes = Uint8List.fromList(utf8.encode(payload));
+      final status = _statusCharacteristic;
+      if (status != null) {
+        await status.write(bytes, withoutResponse: true);
+      }
+    } catch (error) {
+      Logger.debug('sendHeartbeat failed: $error');
     }
   }
 
@@ -166,7 +183,12 @@ class BleService {
     final bytes = Uint8List.fromList(utf8.encode(payload));
     final chunks = _fragment(bytes, _negotiatedMtu);
     for (final chunk in chunks) {
-      await textCharacteristic.write(chunk, withoutResponse: true);
+      try {
+        await textCharacteristic.write(chunk, withoutResponse: true);
+      } catch (error) {
+        Logger.debug('BLE write failed during chunk send: $error');
+        rethrow;
+      }
     }
   }
 

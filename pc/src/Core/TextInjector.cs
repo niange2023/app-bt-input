@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Diagnostics;
 using BtInput.Helpers;
 using BtInput.Protocol;
 
@@ -169,7 +170,14 @@ public sealed class TextInjector
 
         if (text.Length <= 10)
         {
-            _inputSender.SendUnicodeText(text);
+            try
+            {
+                _inputSender.SendUnicodeText(text);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"SendInput unicode failed: {ex.Message}");
+            }
             return;
         }
 
@@ -180,7 +188,15 @@ public sealed class TextInjector
     {
         for (var index = 0; index < count; index++)
         {
-            _inputSender.SendVirtualKey(NativeMethods.VK_BACK);
+            try
+            {
+                _inputSender.SendVirtualKey(NativeMethods.VK_BACK);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Backspace injection failed: {ex.Message}");
+                break;
+            }
         }
     }
 
@@ -230,6 +246,7 @@ public sealed class TextInjector
         }
         catch
         {
+            Debug.WriteLine("Clipboard injection failed, fallback to unicode send.");
             _inputSender.SendUnicodeText(text);
         }
         finally
