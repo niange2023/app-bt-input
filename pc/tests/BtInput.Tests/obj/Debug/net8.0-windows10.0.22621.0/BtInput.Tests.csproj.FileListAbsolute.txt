@@ -106,3 +106,7 @@ C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\obj\Debug\
 C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\obj\Debug\net8.0-windows10.0.22621.0\BtInput.Tests.pdb
 C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\obj\Debug\net8.0-windows10.0.22621.0\BtInput.Tests.genruntimeconfig.cache
 C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\obj\Debug\net8.0-windows10.0.22621.0\ref\BtInput.Tests.dll
+C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\bin\Debug\net8.0-windows10.0.22621.0\assets\icons\tray-blue.ico
+C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\bin\Debug\net8.0-windows10.0.22621.0\assets\icons\tray-gray.ico
+C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\bin\Debug\net8.0-windows10.0.22621.0\assets\icons\tray-green.ico
+C:\Users\vzbf40\Documents\Project\app-bt-input\pc\tests\BtInput.Tests\bin\Debug\net8.0-windows10.0.22621.0\assets\icons\tray-yellow.ico

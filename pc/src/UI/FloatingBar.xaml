@@ -10,15 +10,22 @@
         Width="420"
         Height="42"
         Opacity="0">
-    <Border Background="#CC333333" CornerRadius="8" Padding="12,6">
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <Ellipse x:Name="StatusDot" Width="10" Height="10" Fill="#2196F3" VerticalAlignment="Center" />
+    <Border Background="#CC333333"
+            CornerRadius="8"
+            Padding="12,6">
+        <StackPanel Orientation="Horizontal"
+                VerticalAlignment="Center">
+            <Ellipse x:Name="StatusDot"
+                    Width="10"
+                    Height="10"
+                    Fill="#2196F3"
+                    VerticalAlignment="Center"/>
             <TextBlock x:Name="TitleText"
                        Text="BT Input"
                        Foreground="White"
                        FontSize="13"
                        Margin="8,0,0,0"
-                       VerticalAlignment="Center" />
+                       VerticalAlignment="Center"/>
             <TextBlock x:Name="PreviewText"
                        Text="已连接"
                        Foreground="#80FFFFFF"
@@ -26,7 +33,7 @@
                        Margin="8,0,0,0"
                        VerticalAlignment="Center"
                        MaxWidth="300"
-                       TextTrimming="CharacterEllipsis" />
+                       TextTrimming="CharacterEllipsis"/>
         </StackPanel>
     </Border>
 </Window>

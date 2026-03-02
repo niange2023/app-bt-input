@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "nxKUMGxo1lI=",
+  "dgSpecHash": "/PFDp1IZdjw=",
   "success": true,
   "projectFilePath": "C:\\Users\\vzbf40\\Documents\\Project\\app-bt-input\\pc\\BtInput.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\vzbf40\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.22621.56\\microsoft.windows.sdk.net.ref.10.0.22621.56.nupkg.sha512"
+  ],
   "logs": []
 }

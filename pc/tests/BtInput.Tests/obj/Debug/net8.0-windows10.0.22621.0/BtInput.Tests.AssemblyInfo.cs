@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BtInput.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c186c3a57892f106210c86cc10aec8f424e1fa34")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+62a1ff8d26ebd4cffa8a2c15b43981e47bcdcbc9")]
 [assembly: System.Reflection.AssemblyProductAttribute("BtInput.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BtInput.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

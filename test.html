@@ -1,0 +1,537 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>微信公众号封面组合示例</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Font: Noto Sans SC for modern Chinese -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome (optional icons, e.g. on download button) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        :root {
+            --cover-font: 'Noto Sans SC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            /* 现代科技感配色，可根据需要调整 */
+            --bg-main: #050816;
+            --accent-1: #22d3ee;
+            --accent-2: #6366f1;
+            --accent-3: rgba(255, 255, 255, 0.08);
+            --text-main: #f9fafb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #020617 0, #020617 40%, #000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--cover-font);
+        }
+
+        /* ===== 核心比例控制 =====
+       外层容器：3.35 : 1
+       利用 aspect-ratio，宽度由父级决定，高度自动按比例计算
+    */
+        .wx-cover-wrapper {
+            width: min(100vw - 32px, 1200px);
+        }
+
+        .ratio-3_35-1 {
+            aspect-ratio: 3.35 / 1;
+        }
+
+        /* 直角卡片（父容器本身无圆角） */
+        .wx-card {
+            background: var(--bg-main);
+            color: var(--text-main);
+            position: relative;
+            overflow: hidden;
+            border-radius: 0;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow:
+                0 24px 80px rgba(15, 23, 42, 0.9),
+                0 0 0 1px rgba(148, 163, 184, 0.35);
+        }
+
+        /* 内部分割：
+       总宽比例：主封面 : 朋友圈 ≈ 2.35 : 1
+       总宽 3.35 => 主封面 2.35/3.35 ≈ 70.15%，右侧 ≈ 29.85%
+    */
+        .main-cover {
+            width: 70.15%;
+            position: relative;
+            padding: 3%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1.5vh;
+        }
+
+        .feed-cover {
+            width: 29.85%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4%;
+        }
+
+        /* 背景装饰：两侧共享视觉元素 */
+        .wx-bg-layer {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .wx-bg-gradient {
+            position: absolute;
+            inset: -20%;
+            background:
+                radial-gradient(circle at 0% 0%, rgba(34, 211, 238, 0.35), transparent 55%),
+                radial-gradient(circle at 80% 0%, rgba(99, 102, 241, 0.35), transparent 55%),
+                radial-gradient(circle at 80% 90%, rgba(248, 250, 252, 0.12), transparent 65%);
+            mix-blend-mode: screen;
+            opacity: 0.9;
+        }
+
+        .wx-bg-grid {
+            position: absolute;
+            inset: -1px;
+            background-image: linear-gradient(to right,
+                    rgba(148, 163, 184, 0.08) 1px,
+                    transparent 1px),
+                linear-gradient(to bottom,
+                    rgba(148, 163, 184, 0.08) 1px,
+                    transparent 1px);
+            background-size: 32px 32px;
+            opacity: 0.5;
+            mix-blend-mode: soft-light;
+        }
+
+        .wx-bg-orbit {
+            position: absolute;
+            width: 200%;
+            aspect-ratio: 3 / 1;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            transform: translate(-25%, 10%) rotate(-8deg);
+            opacity: 0.5;
+            mix-blend-mode: screen;
+        }
+
+        /* 背景图片支持：如果用户提供图片，可将其设置在 .main-bg-image 或 .feed-bg-image 上 */
+        .main-bg-image,
+        .feed-bg-image {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            mix-blend-mode: screen;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        /* ===== 主封面文字区域：文字 ≥70% 主体 ===== */
+        .headline-container {
+            position: relative;
+            z-index: 1;
+            max-width: 90%;
+            transform-origin: left center;
+        }
+
+        .headline-eyebrow {
+            letter-spacing: 0.18em;
+            font-size: clamp(10px, 1.1vw, 13px);
+            text-transform: uppercase;
+            color: rgba(226, 232, 240, 0.7);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4em;
+        }
+
+        .headline-eyebrow::before {
+            content: '';
+            width: 36px;
+            height: 1px;
+            background: linear-gradient(to right, var(--accent-1), var(--accent-2));
+            border-radius: 999px;
+        }
+
+        .headline-main {
+            margin-top: 0.7vh;
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: 0.02em;
+            font-size: clamp(26px, 3.3vw, 42px);
+            text-wrap: balance;
+        }
+
+        .headline-main span.strong {
+            /* 强调关键字，保持统一风格 */
+            background: linear-gradient(120deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .headline-sub {
+            margin-top: 1.3vh;
+            font-size: clamp(12px, 1.2vw, 14px);
+            color: rgba(226, 232, 240, 0.85);
+            max-width: 80%;
+        }
+
+        .badge-row {
+            margin-top: 1.6vh;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7vh 0.7vw;
+            align-items: center;
+        }
+
+        .badge-pill {
+            border-radius: 999px;
+            padding: 0.35em 0.9em;
+            border: 1px solid rgba(148, 163, 184, 0.55);
+            background: linear-gradient(135deg,
+                    rgba(15, 23, 42, 0.8),
+                    rgba(15, 23, 42, 0.9));
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.85);
+            font-size: clamp(11px, 1.1vw, 13px);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45em;
+            color: rgba(226, 232, 240, 0.9);
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, #f9fafb, var(--accent-1));
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+        }
+
+        .badge-pill i {
+            font-size: 0.9em;
+            color: var(--accent-1);
+        }
+
+        .footer-meta {
+            position: absolute;
+            left: 3%;
+            right: 3%;
+            bottom: 3%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: clamp(11px, 1vw, 13px);
+            color: rgba(148, 163, 184, 0.9);
+            z-index: 1;
+        }
+
+        .footer-meta .tagline {
+            display: flex;
+            align-items: center;
+            gap: 0.6em;
+        }
+
+        .footer-meta .tagline::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, #f9fafb, var(--accent-2));
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+        }
+
+        .footer-meta .meta-right {
+            display: flex;
+            align-items: center;
+            gap: 0.7em;
+        }
+
+        .meta-pill {
+            padding: 0.25em 0.8em;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+        }
+
+        /* ===== 右侧朋友圈封面 1:1 中仍受外层高约束但内部用伪元素保持正方形区域 ===== */
+        .feed-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-left: 1px solid rgba(148, 163, 184, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7%;
+        }
+
+        .feed-square {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-height: 100%;
+            aspect-ratio: 1 / 1;
+            margin: auto;
+            border-radius: 18px;
+            overflow: hidden;
+            background: radial-gradient(circle at 10% 0%, rgba(34, 211, 238, 0.18), transparent 55%),
+                radial-gradient(circle at 90% 100%, rgba(99, 102, 241, 0.22), transparent 55%),
+                rgba(15, 23, 42, 0.98);
+            box-shadow:
+                0 18px 40px rgba(15, 23, 42, 0.9),
+                0 0 0 1px rgba(148, 163, 184, 0.4);
+        }
+
+        .feed-square::before {
+            content: '';
+            position: absolute;
+            inset: -20%;
+            background:
+                radial-gradient(circle at 0% 0%, rgba(34, 211, 238, 0.35), transparent 55%),
+                radial-gradient(circle at 80% 0%, rgba(99, 102, 241, 0.35), transparent 55%),
+                radial-gradient(circle at 80% 90%, rgba(248, 250, 252, 0.12), transparent 65%);
+            mix-blend-mode: screen;
+            opacity: 0.85;
+        }
+
+        .feed-square::after {
+            content: '';
+            position: absolute;
+            inset: 10%;
+            border-radius: 18px;
+            border: 1px dashed rgba(148, 163, 184, 0.55);
+            opacity: 0.7;
+            mix-blend-mode: soft-light;
+        }
+
+        .feed-text {
+            position: relative;
+            z-index: 1;
+            width: 80%;
+            height: 80%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 4%;
+            text-align: center;
+            font-weight: 900;
+            line-height: 1;
+            font-size: clamp(18px, 2.4vw, 26px);
+            letter-spacing: 0.14em;
+            text-transform: none;
+            color: #f9fafb;
+        }
+
+        .feed-char {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.82);
+            box-shadow:
+                0 0 0 1px rgba(148, 163, 184, 0.5),
+                0 12px 26px rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(4px);
+        }
+
+        .feed-char:nth-child(1),
+        .feed-char:nth-child(4) {
+            background: linear-gradient(145deg,
+                    rgba(56, 189, 248, 0.9),
+                    rgba(129, 140, 248, 0.9));
+            color: #020617;
+            box-shadow:
+                0 0 0 1px rgba(15, 23, 42, 0.75),
+                0 12px 26px rgba(30, 64, 175, 0.95);
+        }
+
+        /* 统一内部缩放：随容器缩放保持排版比例 */
+        .main-cover,
+        .feed-inner {
+            transform-origin: center;
+        }
+
+        /* ===== 下载按钮区域 ===== */
+        .download-bar {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .download-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5em;
+            padding: 0.7em 1.4em;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #020617;
+            background: linear-gradient(135deg, #22d3ee, #6366f1);
+            border: none;
+            cursor: pointer;
+            box-shadow:
+                0 10px 25px rgba(56, 189, 248, 0.55),
+                0 0 0 1px rgba(15, 23, 42, 0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        }
+
+        .download-btn:active {
+            transform: translateY(1px) scale(0.99);
+            box-shadow:
+                0 4px 12px rgba(56, 189, 248, 0.5),
+                0 0 0 1px rgba(15, 23, 42, 0.4);
+            filter: brightness(0.98);
+        }
+
+        .download-btn i {
+            font-size: 0.95em;
+        }
+
+        /* 简单自适应调整：在更窄宽度时适当缩小整体缩放感知 */
+        @media (max-width: 768px) {
+            .wx-card {
+                box-shadow:
+                    0 16px 48px rgba(15, 23, 42, 0.9),
+                    0 0 0 1px rgba(148, 163, 184, 0.4);
+            }
+
+            .main-cover {
+                padding: 3.5%;
+            }
+
+            .feed-inner {
+                padding: 5%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wx-cover-wrapper mx-auto">
+        <!-- 封面组合容器：保持 3.35:1 比例 -->
+        <section id="wx-cover-card" class="wx-card ratio-3_35-1 flex flex-row relative">
+            <!-- 背景装饰层（主封面与朋友圈共享） -->
+            <div class="wx-bg-layer">
+                <div class="wx-bg-grid"></div>
+                <div class="wx-bg-gradient"></div>
+                <div class="wx-bg-orbit"></div>
+            </div>
+
+            <!-- 左：主封面区域（约 2.35 : 1 宽度比） -->
+            <div class="main-cover">
+                <!-- 如果有背景图片，可将此 div 的 style background-image 换成你的 URL -->
+                <!-- <div class="main-bg-image" style="background-image:url('你的背景图片链接');"></div> -->
+
+                <div class="headline-container">
+                    <div class="headline-eyebrow">
+                        新一代创意软件叙事
+                    </div>
+                    <h1 class="headline-main">
+                        我用 <span class="strong">2 小时</span>，<br />
+                        设计了一个<span class="strong">市面上买不到</span>的软件
+                    </h1>
+                    <p class="headline-sub">
+                        从灵感火花到完整产品体验，用设计师的视角拆解一款「你在任何应用商店都找不到」的独特软件是如何诞生的。
+                    </p>
+
+                    <div class="badge-row">
+                        <span class="badge-pill">
+                            <span class="badge-dot"></span>
+                            原创产品故事
+                        </span>
+                        <span class="badge-pill">
+                            <i class="fa-solid fa-bolt"></i>
+                            2 小时极速构思
+                        </span>
+                        <span class="badge-pill">
+                            <i class="fa-solid fa-layer-group"></i>
+                            设计与策略双线解析
+                        </span>
+                    </div>
+                </div>
+
+                <div class="footer-meta">
+                    <div class="tagline">
+                        我用 2 小时，设计了一个市面上买不到的软件
+                    </div>
+                    <div class="meta-right">
+                        <span class="meta-pill">创意设计 · 产品思考</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右：朋友圈封面区域（内部保持 1:1） -->
+            <aside class="feed-cover">
+                <!-- 同样可开启背景图片叠加 -->
+                <!-- <div class="feed-bg-image" style="background-image:url('你的背景图片链接');"></div> -->
+
+                <div class="feed-inner">
+                    <div class="feed-square">
+                        <div class="feed-text">
+                            <!-- 上两字，下两字，四个字铺满区域，可按需要修改 -->
+                            <div class="feed-char">买</div>
+                            <div class="feed-char">不</div>
+                            <div class="feed-char">到</div>
+                            <div class="feed-char">软</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <!-- 下载按钮：点击后下载整张图片（前端截图保存） -->
+        <div class="download-bar">
+            <button id="download-btn" class="download-btn">
+                <i class="fa-solid fa-download"></i>
+                下载封面组合图片
+            </button>
+        </div>
+    </main>
+
+    <!-- html2canvas 用于前端截图下载 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        integrity="sha512-BNaLbRlv6GJPD7W82dManIeZDV4SSQdlqzTeWY5sm4Q91RgC9xZijNV9vK7Qowj0L1i+6sWkKpF5RHRR9w6Zeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        // 下载整张封面组合为 PNG
+        document.getElementById('download-btn').addEventListener('click', function () {
+            const cover = document.getElementById('wx-cover-card');
+
+            // 使用更高的 scale 保证清晰度
+            html2canvas(cover, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'wx-cover-combo.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+    </script>
+</body>
+
+</html>
+```

@@ -10,34 +10,65 @@
         ShowInTaskbar="True">
     <Grid Margin="24">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" FontSize="24" FontWeight="SemiBold" Text="欢迎使用 BT Input" />
+        <TextBlock Grid.Row="0"
+                FontSize="24"
+                FontWeight="SemiBold"
+                Text="欢迎使用 BT Input"/>
 
-        <Border Grid.Row="1" Margin="0,16,0,16" Padding="12" CornerRadius="8" BorderThickness="1" BorderBrush="#33000000" Background="#11000000">
+        <Border Grid.Row="1"
+                Margin="0,16,0,16"
+                Padding="12"
+                CornerRadius="8"
+                BorderThickness="1"
+                BorderBrush="#33000000"
+                Background="#11000000">
             <StackPanel>
-                <TextBlock Text="本机名称" FontSize="12" Foreground="#66000000" />
-                <TextBlock x:Name="PcNameText" FontSize="20" FontWeight="Bold" Text="--" />
+                <TextBlock Text="本机名称"
+                        FontSize="12"
+                        Foreground="#66000000"/>
+                <TextBlock x:Name="PcNameText"
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Text="--"/>
             </StackPanel>
         </Border>
 
         <StackPanel Grid.Row="2">
-            <TextBlock Text="请按以下步骤操作：" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,10" />
-            <TextBlock Text="1. 在手机安装并打开 BT Input 应用" Margin="0,0,0,6" />
-            <TextBlock Text="2. 确保手机与电脑蓝牙均已开启" Margin="0,0,0,6" />
-            <TextBlock Text="3. 在手机连接页选择当前电脑设备" Margin="0,0,0,6" />
-            <TextBlock Text="4. 首次连接成功后将自动关闭本窗口" Margin="0,0,0,16" />
+            <TextBlock Text="请按以下步骤操作："
+                    FontSize="15"
+                    FontWeight="SemiBold"
+                    Margin="0,0,0,10"/>
+            <TextBlock Text="1. 在手机安装并打开 BT Input 应用"
+                    Margin="0,0,0,6"/>
+            <TextBlock Text="2. 确保手机与电脑蓝牙均已开启"
+                    Margin="0,0,0,6"/>
+            <TextBlock Text="3. 在手机连接页选择当前电脑设备"
+                    Margin="0,0,0,6"/>
+            <TextBlock Text="4. 首次连接成功后将自动关闭本窗口"
+                    Margin="0,0,0,16"/>
 
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <ProgressBar Width="180" Height="14" IsIndeterminate="True" />
-                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="#66000000" Text="等待手机连接中..." />
+            <StackPanel Orientation="Horizontal"
+                    VerticalAlignment="Center">
+                <ProgressBar Width="180"
+                        Height="14"
+                        IsIndeterminate="True"/>
+                <TextBlock Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Foreground="#66000000"
+                        Text="等待手机连接中..."/>
             </StackPanel>
         </StackPanel>
 
-        <TextBlock Grid.Row="3" Margin="0,16,0,0" FontSize="12" Foreground="#66000000" Text="连接后将自动进入后台托盘模式" />
+        <TextBlock Grid.Row="3"
+                Margin="0,16,0,0"
+                FontSize="12"
+                Foreground="#66000000"
+                Text="连接后将自动进入后台托盘模式"/>
     </Grid>
 </Window>
